@@ -1,9 +1,9 @@
 /-
-Copyright (c) 2024 Bjørn Kjos-Hanssen. All rights reserved.
+Copyright (c) 2026 Bjørn Kjos-Hanssen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Bjørn Kjos-Hanssen.
 Zulip chat help from:
-Johan Commelin, Kyle Miller, Pedro Minicz, Reid Barton, Scott Morrison, Heather Macbeth.
+Johan Commelin, Kyle Miller, Pedro Minicz, Reid Barton, Kim Morrison, Heather Macbeth.
 This is a Lean 4 version of the 2020 project.
 -/
 
@@ -65,7 +65,7 @@ lemma card_rot_cast {α : Type*} [DecidableEq α] (X Y Z : Finset α) : ((|X\Y| 
     norm_cast
 
 
--- variable {m M : ℝ}
+variable {m M : ℝ}
 
 noncomputable def δ {α : Type*} [DecidableEq α] : ℝ → ℝ → Finset α → (Finset α → ℝ) :=
     λ m M A B ↦ M *  ((max (|A\B| : ℝ) |B\A|)) + m *  (min (|A\B|) (|B\A|))
@@ -209,8 +209,8 @@ lemma seventeen_right_yzx {α : Type*} [DecidableEq α] {m M :ℝ} {X Y Z: Finse
         mul_sdiff_tri M hM X Z Y
     calc
     δ m M X Y = M * (x_y) + m * (|Y\X|)                 := by exact maxmin_2 h₁
-          _ ≤ M * (x_y) + m * ((y_z) + (z_x))           := add_le_add_left mst_yzx (M * (x_y))
-          _ ≤ M * (x_z + z_y) + m * (y_z + z_x)         := add_le_add_right mst_xzy (m * ((y_z) + (z_x)))
+          _ ≤ M * (x_y) + m * ((y_z) + (z_x))           := add_le_add_right mst_yzx (M * (x_y))
+          _ ≤ M * (x_z + z_y) + m * (y_z + z_x)         := add_le_add_left mst_xzy (m * ((y_z) + (z_x)))
           _ = (M * x_z + m * z_x) + (M * z_y + m * y_z) := by ring
           _ = δ m M X Z                     + δ m M Z Y := by rw[dxz,dzy]
 
@@ -291,12 +291,12 @@ theorem seventeen_right_yxz {α : Type*} [DecidableEq α] {m M : ℝ} {X Y Z : F
         calc   (δ m M X Y)     + (m * y_x)
             = (M * x_y + m * y_x) + (m * y_x)                           := by rw [dxy]
         _ = M * x_y + 2 * m * y_x                                       := by ring
-        _ ≤ M * x_y + 2 * m * (y_z+z_x)                                 := add_le_add_left tri_1 term_1
+        _ ≤ M * x_y + 2 * m * (y_z+z_x)                                 := add_le_add_right tri_1 term_1
         _ = m*(x_y+y_z+z_x) + m*(y_z+z_x) + (M-m)*x_y                   := by ring
         _ = m*(x_z+z_y+y_x) + m*(y_z+z_x) + (M-m)*x_y                   := by rw [card_rot_cast]
-        _ ≤ m*(x_z+z_y+y_x) + m*(y_z+z_x) + (M-m)*(x_z+ z_y)            := add_le_add_left tri_2 term_2
+        _ ≤ m*(x_z+z_y+y_x) + m*(y_z+z_x) + (M-m)*(x_z+ z_y)            := add_le_add_right tri_2 term_2
         _ = m*(x_z+z_y+y_x) + (M-m) * z_y + m*z_x + m*y_z + (M-m) * x_z := by ring
-        _ ≤ m*(x_z+z_y+y_x) + (M-m) * z_y + m*z_x + m*y_z + (M-m) * z_x := add_le_add_left tri_3 term_3
+        _ ≤ m*(x_z+z_y+y_x) + (M-m) * z_y + m*z_x + m*y_z + (M-m) * z_x := add_le_add_right tri_3 term_3
         _ = (M * z_x + m * x_z)        + (M * z_y + m * y_z) + (m * y_x):= by ring
         _ = (δ m M X Z                 +          δ m M Z Y) + (m * y_x):= by rw[dxz,dzy]
     exact le_of_add_le_add_right triangle_add
@@ -305,9 +305,15 @@ lemma sdiff_card_le {α : Type*} [DecidableEq α] (X Y U : Finset α) (hx: X ⊆
     |U \ Y| ≤ |U \ X| := by
     have hu: |U| - |Y| ≤ |U| - |X| := Nat.sub_le_sub_left h _
     calc
-        |U \ Y| = |U| - |Y| := card_sdiff hy
+        |U \ Y| = |U| - |Y| := by
+          rw [card_sdiff]
+          congr
+          ext;simp;tauto
         _ ≤ |U| - |X| := hu
-        _ = |U \ X|   := by rw[card_sdiff hx]
+        _ = |U \ X|   := by
+          rw [card_sdiff]
+          congr
+          ext;simp;tauto
 
 theorem seventeen_right_zyx {α : Type*} [DecidableEq α] {m M : ℝ} {X Y Z : Finset α}:
     0 ≤ m → m ≤ M → |Z| ≤ |Y| ∧ |Y| ≤ |X| → triangle_inequality m M X Y Z := by
@@ -446,7 +452,7 @@ theorem seventeen:
               add_le_add_left
     Iff.intro h₀ h₁
 
-    def delta_triangle (X Y Z: Finset ℕ) (hm: 0 < m) (hM: m ≤ M):
+    theorem delta_triangle (X Y Z: Finset ℕ) (hm: 0 < m) (hM: m ≤ M):
     triangle_inequality m M X Z Y
     --δ m M X Y ≤ δ m M X Z + δ m M Z Y
     :=
@@ -454,11 +460,8 @@ theorem seventeen:
 
     -- section jaccard_numerator
     /-- Instantiate Finset ℕ as a metric space. -/
-
-    -- def protein {m M : ℝ} (hm : 0 < m) (hM : m ≤ M) := Finset α
-
-
-    noncomputable instance {m M : ℝ} (hm : 0 < m) (hM : m ≤ M) :
+    @[reducible]
+    noncomputable def jaccard_numerator {m M : ℝ} (hm : 0 < m) (hM : m ≤ M) :
       MetricSpace (Finset ℕ) := {
         dist               := λ A B ↦ M *  ((max (|A\B| : ℝ) |B\A|)) + m *  (min (|A\B|) (|B\A|)),
         dist_self          := delta_self, -- have to give proof that d(x,x)=0

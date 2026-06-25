@@ -71,7 +71,7 @@ theorem twelve_end (X Y Z : Finset α) : |X ∩ Z| ≤ |X ∩ Y| + max (|Z \ Y|)
     _ ≤ |X ∩ Y| + |Z \ Y| := card_union_le (X ∩ Y) (Z \ Y)
     _ = |X ∩ Y| + max z_y y_z := by rw[max_eq_left (sdiff_card Z Y h)]
   |inr h =>
-    have h1: z ≤ y := le_of_lt ((lt_iff_not_ge _ _).mpr h)
+    have h1: z ≤ y := Nat.le_of_not_ge h
     have h_diff: z_y ≤ y_z := sdiff_card Y Z h1
     let x110 := |(X ∩ Y) \ Z|
     let x010 := |(Y \ X) \ Z|
@@ -102,10 +102,10 @@ theorem twelve_end (X Y Z : Finset α) : |X ∩ Z| ≤ |X ∩ Y| + max (|Z \ Y|)
                 x101 ≤ y_z                 := by exact le_trans r h_diff
                   _ = x110 + x010          := by rw[sum_y_z]
                   _ = 0 + (x110 + x010)    := by ring
-                  _ ≤ x110 + (x110 + x010) := add_le_add_right (Nat.zero_le x110) (x110 + x010)
+                  _ ≤ x110 + (x110 + x010) := add_le_add_left (Nat.zero_le x110) (x110 + x010)
                   _ = x110 + x110 + x010   := by ring
     calc xz = x101 + x111                  := sum_xz
-        _ ≤ x110 + x110 + x010 + x111     := add_le_add_right prelim x111
+        _ ≤ x110 + x110 + x010 + x111     := add_le_add_left prelim x111
         _ = (x110 + x111) + (x110 + x010) := by ring
         _ = xy            + max z_y y_z   := by rw[sum_xy,sum_y_z,max_eq_right h_diff]
 
@@ -118,7 +118,7 @@ theorem twelve_middle (hm: 0 ≤ m) (hM: 0 < M) (X Y Z : Finset α) :
   let z_y := |Z\Y|
   let xy := |X ∩ Y|
   let xz := |X ∩ Z|
-  have b: 0 ≤ m/M ↔ 0*M ≤ m := le_div_iff hM
+  have b: 0 ≤ m/M ↔ 0*M ≤ m := le_div_iff₀ hM
   have a: 0*M ≤ m := calc
           0*M = 0 := by ring
           _ ≤ m := hm
@@ -130,7 +130,7 @@ theorem twelve_middle (hm: 0 ≤ m) (hM: 0 < M) (X Y Z : Finset α) :
   (xz:ℝ) ≤ (xy:ℝ) + (max z_y y_z:ℝ) := by norm_cast;exact (twelve_end X Y Z)
   _ = (xy:ℝ) + maxzy + 0                       := by ring
   _ ≤ (xy:ℝ) + maxzy + (m/M) * (min z_y y_z:ℝ) :=
-            add_le_add_left (mul_nonneg g f) ((xy:ℝ) + maxzy)
+            add_le_add_right (mul_nonneg g f) ((xy:ℝ) + maxzy)
 
 
 theorem jn_self  (X : Finset α): D m M X X = 0 := by
@@ -173,7 +173,7 @@ theorem D_nonneg (X Y : Finset α) (hm: 0 ≤ m) (hM: m ≤ M): 0 ≤ D m M X Y 
   by_cases hd : (0 < (|X ∩ Y|:ℝ) + δ m M X Y)
   . calc
     0 = 0         / ((|X ∩ Y|:ℝ) + δ m M X Y) := by rw[zero_div]
-    _ ≤ δ m M X Y / ((|X ∩ Y|:ℝ) + δ m M X Y) := div_le_div hc hc hd (le_refl _)
+    _ ≤ δ m M X Y / ((|X ∩ Y|:ℝ) + δ m M X Y) := div_le_div₀ hc hc hd (le_refl _)
   . have hd2: 0 ≤ (|X ∩ Y|:ℝ) + δ m M X Y := D_denom_nonneg X Y hm hM
     have hdd: 0 = (|X ∩ Y|:ℝ) + δ m M X Y :=
       by_contra (
@@ -228,10 +228,10 @@ theorem D_bounded (m M : ℝ) (X Y : Finset α) (hm: 0 ≤ m) (hM: m ≤ M): D m
     have pos: 0 < (|X ∩ Y|:ℝ) + dxy := (lt_iff_le_and_ne.mpr) (And.intro hd2 h0)
     have h: dxy ≤ |X ∩ Y| + dxy :=
        calc dxy =    0    + dxy := by rw[zero_add]
-       _ ≤ |X ∩ Y| + dxy := add_le_add_right (card_inter_nonneg X Y) (dxy)
+       _ ≤ |X ∩ Y| + dxy := add_le_add_left (card_inter_nonneg X Y) (dxy)
     show dxy /(|X ∩ Y| + dxy) ≤ 1
     exact calc
-    dxy /(|X ∩ Y| + dxy) ≤ (|X ∩ Y| + dxy)/(|X ∩ Y| + dxy) := by apply div_le_div;tauto;tauto;tauto;exact le_refl _
+    dxy /(|X ∩ Y| + dxy) ≤ (|X ∩ Y| + dxy)/(|X ∩ Y| + dxy) := by apply div_le_div₀;tauto;tauto;tauto;exact le_refl _
     _ ≤ 1 := div_self_le_one (|X ∩ Y| + dxy)
 
 theorem intersect_cases (m M : ℝ) (Y Z : Finset α) (hm: 0< m) (hM: m≤ M) (hy: Y ≠ ∅):
@@ -266,7 +266,7 @@ theorem intersect_cases (m M : ℝ) (Y Z : Finset α) (hm: 0< m) (hM: m≤ M) (h
         have le: 0 ≤ dyz := delta_nonneg (le_of_lt hm) hM
         calc 0 <       dyz := (lt_iff_le_and_ne.mpr) (And.intro le ne)
             _ =  0  + dyz := by rw[zero_add]
-            _ ≤ ayz + dyz := add_le_add_right (card_inter_nonneg Z Y) dyz
+            _ ≤ ayz + dyz := add_le_add_left (card_inter_nonneg Z Y) dyz
       . have card_zero: |Y ∩ Z| = 0 ↔ Y ∩ Z = ∅ := card_eq_zero
         have ne_nat: |Y ∩ Z| ≠ 0 :=
           λ h: |Y ∩ Z| = 0 ↦
@@ -276,7 +276,7 @@ theorem intersect_cases (m M : ℝ) (Y Z : Finset α) (hm: 0< m) (hM: m≤ M) (h
         calc 0 < (|Y ∩ Z|:ℝ) := (lt_iff_le_and_ne.mpr) (And.intro le ne)
           _ = ayz      := by rw[inter_comm]
           _ = ayz +  0 := by rw[add_zero]
-          _ ≤ ayz + dyz := add_le_add_left (delta_nonneg (le_of_lt hm) hM) ayz
+          _ ≤ ayz + dyz := add_le_add_right (delta_nonneg (le_of_lt hm) hM) ayz
 
 
 lemma four_immediate_from (m M : ℝ) (X Y Z : Finset α)
@@ -314,14 +314,14 @@ lemma four_immediate_from (m M : ℝ) (X Y Z : Finset α)
   have four_would_follow_from : axz ≤ axy + dyz := calc
       axz ≤ (xy:ℝ) +     maxi           := twelve_end_real
       _ = (xy:ℝ) + 1 * maxi             := by ring
-      _ ≤ (xy:ℝ) + M * maxi             := add_le_add_left use_h1M (xy:ℝ)
+      _ ≤ (xy:ℝ) + M * maxi             := add_le_add_right use_h1M (xy:ℝ)
       _ = (xy:ℝ) + M * maxi + 0         := by rw[add_zero]
-      _ ≤ (xy:ℝ) + M * maxi + m * mini  := add_le_add_left mmin_nonneg ((xy:ℝ) + M * maxi)
+      _ ≤ (xy:ℝ) + M * maxi + m * mini  := add_le_add_right mmin_nonneg ((xy:ℝ) + M * maxi)
       _ = (xy:ℝ) + (M * (max (|Z \ Y|) (|Y \ Z|) : ℝ) + m * (min (|Z \ Y|) (|Y \ Z|) : ℝ)):=
         by rw[add_assoc]
-      _ = (|X ∩ Y|:ℝ)    + (δ m M Z Y) := by unfold δ;simp
+      _ = (|X ∩ Y|:ℝ)    + (δ m M Z Y) := by simp [δ,xy]
   have le_denom:(axz + dxz) ≤ denom :=
-      calc axz + dxz ≤ axy + dyz + dxz := add_le_add_right four_would_follow_from dxz
+      calc axz + dxz ≤ axy + dyz + dxz := add_le_add_left four_would_follow_from dxz
       _ = axy + dxz + dyz := by ring
   have denom_pos : 0 < (axz + dxz) := intersect_cases m M Z X hm hM hz
   have d_nonneg: 0 ≤ dxz := delta_nonneg (le_of_lt hm) hM
@@ -367,11 +367,12 @@ lemma abc_lemma {a b c : ℝ} (h : 0 ≤ a) (hb : a ≤ b) (hc : 0 ≤ c) : (a/(
     have ha: 0 < a := (lt_iff_le_and_ne.mpr) (And.intro h ha)
     have numer : a*(b+c) ≤ b*(a+c) := calc
       a*(b+c) = a*b + a*c := by rw [left_distrib]
-      _ ≤ a*b + b*c := add_le_add_left (mul_le_mul_rt hc hb) (a*b)
+      _ ≤ a*b + b*c := add_le_add_right (mul_le_mul_rt hc hb) (a*b)
       _ = b * (a+c) := by ring
     have h6 : 0 < a+c := lt_add_of_pos_of_le ha hc
-    have h7 : 0 < b+c := lt_add_of_pos_of_le (gt_of_ge_of_gt hb ha) hc
-    exact ((div_le_div_iff h6 h7).mpr) numer
+    have h7 : 0 < b+c := by
+      linarith
+    exact (div_le_div_iff₀ h6 h7).mpr numer
 
 
 theorem three (X Y Z : Finset ℕ) (hm: 0 < m) (hM: m ≤ M):
@@ -415,11 +416,11 @@ theorem three (X Y Z : Finset ℕ) (hm: 0 < m) (hM: m ≤ M):
     have four: (dxz+dyz)/denom ≤ dxz/(axz + dxz) + dyz/(ayz + dyz) := calc
       (dxz+dyz)/denom = dxz/denom + dyz/denom := add_div dxz dyz denom
       _ ≤ dxz/(axz + dxz)   + dyz/denom :=
-        add_le_add_right
+        add_le_add_left
         (four_immediate_from m M X Y Z hm hM h1M hz)
         ((dyz)/denom)
       _ ≤ dxz/(axz + dxz)   + dyz/(ayz + dyz)  :=
-        add_le_add_left
+        add_le_add_right
         (four_immediate_from_and m M X Y Z hm hM h1M hz)
         (dxz/(axz + dxz))
     le_trans three four
@@ -437,34 +438,34 @@ theorem jn_triangle (m M : ℝ) (X Y Z : Finset ℕ)
             _ ≤             D m M Z Y := D_nonneg Z Y (le_of_lt hm) hM
             _ = 0         + D m M Z Y := Eq.symm (zero_add (D m M Z Y))
             _ ≤ D m M X Z + D m M Z Y :=
-              add_le_add_right (D_nonneg X Z (le_of_lt hm) hM) (D m M Z Y)
+              add_le_add_left (D_nonneg X Z (le_of_lt hm) hM) (D m M Z Y)
     .
       by_cases hz : Z = ∅
       .
         have h3: D m M Z Y = 1 := D_empty_1 m M hm hM hz hy
         calc D m M X Y =             1 := D_empty_1 m M hm hM hx hy
         _ = 0         + 1 := by rw[zero_add]
-        _ ≤ D m M X Z + 1 := add_le_add_right (D_nonneg X Z (le_of_lt hm) hM) 1
+        _ ≤ D m M X Z + 1 := add_le_add_left (D_nonneg X Z (le_of_lt hm) hM) 1
         _ = D m M X Z + D m M Z Y := by rw[h3]
       .
         have h1: D m M X Y = 1 := D_empty_1 m M hm hM hx hy
         have h2: D m M X Z = 1 := D_empty_1 m M hm hM hx hz
         calc D m M X Y = 1 := h1
         _ = 1 + 0 := by rw[add_zero]
-        _ ≤ 1 + D m M Z Y := add_le_add_left (D_nonneg Z Y (le_of_lt hm) hM) 1
+        _ ≤ 1 + D m M Z Y := add_le_add_right (D_nonneg Z Y (le_of_lt hm) hM) 1
         _ = D m M X Z + D m M Z Y := by rw[h2]
   . by_cases hy : Y = ∅
     . by_cases hz : Z = ∅
       .
         calc D m M X Y =     1                  := D_empty_2 m M hm hM hx hy
         _ =     1     +      0     := by rw[add_zero]
-        _ ≤     1     +  D m M Z Y := add_le_add_left (D_nonneg Z Y (le_of_lt hm) hM) 1
+        _ ≤     1     +  D m M Z Y := add_le_add_right (D_nonneg Z Y (le_of_lt hm) hM) 1
         _ = D m M X Z +  D m M Z Y := by rw[D_empty_2 m M hm hM hx hz]
 
       .
         calc D m M X Y =                 1    := D_empty_2 m M hm hM hx hy
         _ =     0     +     1    := by rw[zero_add]
-        _ ≤ D m M X Z +     1    := add_le_add_right (D_nonneg X Z (le_of_lt hm) hM) 1
+        _ ≤ D m M X Z +     1    := add_le_add_left (D_nonneg X Z (le_of_lt hm) hM) 1
         _ = D m M X Z + D m M Z Y := by rw[D_empty_2 m M hm hM hz hy]
 
     . by_cases hz : Z = ∅
@@ -473,12 +474,13 @@ theorem jn_triangle (m M : ℝ) (X Y Z : Finset ℕ)
         have h3: D m M Z Y = 1 := D_empty_1 m M hm hM hz hy
         calc D m M X Y ≤             1:= D_bounded m M X Y (le_of_lt hm) hM
         _ =         0 + 1:= by rw[zero_add]
-        _ ≤         1 + 1:= add_le_add_right zero_le_one 1
+        _ ≤         1 + 1:= add_le_add_left zero_le_one 1
         _ = D m M X Z + D m M Z Y := by rw[h2,h3]
 
       . exact jn_triangle_nonempty m M X Y Z hm hM h1M hz
 
-noncomputable instance jaccard_nid.metric_space
+@[reducible]
+noncomputable def jaccard_nid.metric_space
 (hm : 0 < m) (hM : m ≤ M) (h1M: 1 ≤ M): MetricSpace (Finset ℕ) := {
         dist               := λx y ↦ D m M x y,
         dist_self          := jn_self,
@@ -492,7 +494,7 @@ noncomputable instance jaccard_nid.metric_space
 def J : Finset ℕ → (Finset ℕ → ℚ) :=
   λ X Y ↦ (|X \ Y| + |Y \ X|) / |X ∪ Y|
 
-#eval J {0,1} {0,3}
+-- #eval J {0,1} {0,3}
 
 
 
@@ -516,7 +518,8 @@ J X Y = D 1 1 X Y := by
   apply card_union_of_disjoint
   exact disjoint_sdiff
 
-noncomputable instance jaccard.metric_space
+@[reducible]
+noncomputable def jaccard.metric_space
 (hm : (0:ℝ) < (1:ℝ)) (hM : (1:ℝ) ≤ (1:ℝ)) (h1M: (1:ℝ) ≤ (1:ℝ)): MetricSpace (Finset ℕ) := {
         dist               := λx y ↦ D 1 1 x y,
         dist_self          := jn_self,
